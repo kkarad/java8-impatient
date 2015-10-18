@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 public class LambdaTest {
 
@@ -30,5 +32,81 @@ public class LambdaTest {
         String[] files = new File("./src/test/java/org/kkarad/lambda")
                 .list((dir, name) -> name.endsWith(ext));
         System.out.println(Arrays.toString(files));
+    }
+
+    @Test
+    public void exercise4() throws Exception {
+        String basePath = "/home/kostas/dev/work/java8-impatient/src/test/resources/org/kkarad/lambda/ex4/";
+        File[] files = new File[] {
+                new File(basePath + "b-dir"),
+                new File(basePath + "a.txt"),
+                new File(basePath + "c.txt"),
+                new File(basePath + "c-dir"),
+                new File(basePath + "a-dir"),
+                new File(basePath + "b.txt")
+        };
+
+        System.out.println(Arrays.toString(files));
+
+        Arrays.sort(files, (o1, o2) -> {
+            if((o1.isDirectory() && o2.isDirectory()) || (o1.isFile() && o2.isFile())) {
+                return o1.getName().compareTo(o2.getName());
+            } else {
+                return o1.isDirectory() ? -1 : 1;
+            }
+        });
+
+        System.out.println(Arrays.toString(files));
+    }
+
+    @Test
+    public void exercise6() throws Exception {
+        new Thread(uncheck(() -> {
+            System.out.println("Zzz");
+            Thread.sleep(1000);
+        })).start();
+
+        new Thread(uncheck2(() -> {
+            System.out.println("Zzz");
+            Thread.sleep(1000);
+            return null;
+        })).start();
+    }
+
+    private static Runnable uncheck2(Callable<Void> call) {
+        return () -> {
+            try {
+                call.call();
+            } catch (Exception e) {
+                throw new RuntimeException("Execution exception thrown", e);
+            }
+        };
+    }
+
+    private static Runnable uncheck(RunnableEx ex) {
+        return () -> {
+            try {
+                ex.run();
+            } catch (Exception e) {
+                throw new RuntimeException("Execution exception thrown", e);
+            }
+        };
+    }
+
+    @FunctionalInterface
+    private interface RunnableEx {
+        void run() throws Exception;
+    }
+
+    @Test
+    public void exercise7() throws Exception {
+        andThen(() -> System.out.print("Hello "), () -> System.out.println("world")).run();
+    }
+
+    private static Runnable andThen(Runnable firstRun, Runnable secondRun) {
+        return () -> {
+            firstRun.run();
+            secondRun.run();
+        };
     }
 }
