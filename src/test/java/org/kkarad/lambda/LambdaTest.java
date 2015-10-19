@@ -3,9 +3,13 @@ package org.kkarad.lambda;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class LambdaTest {
 
@@ -109,4 +113,47 @@ public class LambdaTest {
             secondRun.run();
         };
     }
+
+    @Test
+    public void exercise8() throws Exception {
+        final String[] names = {"Peter", "Paul", "Mary"};
+        List<Runnable> runners = new ArrayList<>();
+
+        for (String name : names) {
+            runners.add(() -> System.out.println(name));
+        }
+
+        for (Runnable runner : runners) {
+            new Thread(runner).start();
+        }
+
+        runners.clear();
+
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            runners.add(() -> System.out.println(name)); //can't use names[i] in lambda as i is not final
+        }
+
+        for (Runnable runner : runners) {
+            new Thread(runner).start();
+        }
+    }
+
+    @Test
+    public void exercise9() throws Exception {
+        ArrayList2<String> strings = new ArrayList2<>();
+        strings.add("1");
+        strings.add("2");
+        strings.add("3");
+
+        strings.forEachIf(System.out::println, s -> s.equals("1"));
+    }
+
+    interface Collection2<T> extends Collection<T> {
+        default void forEachIf(Consumer<T> action, Predicate<T> filter) {
+            forEach(t -> {if (filter.test(t)) action.accept(t);});
+        }
+    }
+
+    private class ArrayList2<T> extends ArrayList<T> implements Collection2<T> {}
 }
