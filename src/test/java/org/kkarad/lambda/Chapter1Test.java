@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class LambdaTest {
+public class Chapter1Test {
 
     /**
      * The comparator code runs on the same thread with the call to Arrays.sort
@@ -156,4 +156,37 @@ public class LambdaTest {
     }
 
     private class ArrayList2<T> extends ArrayList<T> implements Collection2<T> {}
+
+    /**
+     * Scenario: I defines f() and J implements static f(). if TheClass implements I,J there is no compilation error
+     * However when TheClass implements J,I there is a compilation error. Why?
+     */
+    @Test
+    public void exersize11() throws Exception {
+        TheClass theClass = new TheClass();
+        theClass.f();
+    }
+
+    private static class TheClass extends S implements I {
+
+    }
+
+    private static class S {
+        public void f() {
+            System.out.println("I am S");
+        }
+    }
+
+    private interface I {
+        default void f() {
+            System.out.println("I am I");
+        }
+    }
+
+    private interface J {
+        static void f() {
+            System.out.println("I am J");
+        }
+    }
+
 }
