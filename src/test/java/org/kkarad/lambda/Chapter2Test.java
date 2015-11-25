@@ -1,5 +1,6 @@
 package org.kkarad.lambda;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -7,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -16,6 +18,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
@@ -23,7 +26,7 @@ import static java.util.Arrays.asList;
 public class Chapter2Test {
     @Test
     public void exersise1() throws Exception {
-        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat", "thanosomilisios", "thoukidides");
+        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat", "thalisomilisios", "thoukidides");
 
         final int processors = Runtime.getRuntime().availableProcessors();
         final int size = words.size();
@@ -135,8 +138,46 @@ public class Chapter2Test {
         //return Stream.iterate(0, i -> i + 1).limit(value.length()).map(value::charAt);
     }
 
+    /**
+     * We can't determine whether a Stream is finite of not. It's backing data structure is abstracted away.
+     * This is a wrong implementation of which test never ends.
+     */
     @Test
+    @Ignore
     public void exercise7() throws Exception {
-        //TODO
+        Stream<Double> infiniteStream = Stream.generate(Math::random);
+        System.out.println(isFinite(infiniteStream));
+    }
+
+    static <T> boolean isFinite(Stream<T> stream) {
+        return stream.count() > 0;
+    }
+
+    @Test
+    public void exercise8() throws Exception {
+        zip(Stream.of(1, 3, 5, 7), Stream.of(2, 4, 6, 8)).forEach(System.out::println);
+    }
+
+    static <T> Stream<T> zip(Stream<T> first, Stream<T> second) {
+        Iterator<T> firstIterator = first.iterator();
+        Iterator<T> secondIterator = second.iterator();
+        final Iterator<T> zipIterator = new Iterator<T>() {
+            boolean alternate = true;
+
+            @Override
+            public boolean hasNext() {
+                return firstIterator.hasNext() || secondIterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                final Iterator<T> nextIterator = alternate ? firstIterator : secondIterator;
+                alternate = !alternate;
+                return nextIterator.next();
+            }
+        };
+
+        final Iterable<T> iterable = () -> zipIterator;
+        return StreamSupport.stream(iterable.spliterator(), false);
     }
 }
