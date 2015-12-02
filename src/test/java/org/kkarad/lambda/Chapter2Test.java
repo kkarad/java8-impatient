@@ -180,4 +180,37 @@ public class Chapter2Test {
         final Iterable<T> iterable = () -> zipIterator;
         return StreamSupport.stream(iterable.spliterator(), false);
     }
+
+    @Test
+    public void exercise9() throws Exception {
+        List<ArrayList<Integer>> listOfLists = new ArrayList<>();
+        listOfLists.add(new ArrayList<>(asList(1, 2, 3)));
+        listOfLists.add(new ArrayList<>(asList(4, 5, 6)));
+        listOfLists.add(new ArrayList<>(asList(7, 8, 9)));
+
+        final ArrayList<Integer> reduce1 = listOfLists.stream().reduce(new ArrayList<>(), (integers, integers2) -> {
+            integers.addAll(integers2);
+            return integers;
+        });
+
+        System.out.println(reduce1);
+
+        final ArrayList<Integer> reduce2 = listOfLists.stream().reduce((integers, integers2) -> {
+            final ArrayList<Integer> newIntegers = new ArrayList<>(integers);
+            newIntegers.addAll(integers2);
+            return newIntegers;
+        }).orElse(new ArrayList<>());
+
+        System.out.println(reduce2);
+
+        final ArrayList<Integer> reduce3 = listOfLists.parallelStream().reduce(
+                new ArrayList<>(),
+                (integers, integers2) -> {
+                    integers.addAll(integers2);
+                    return integers;
+                },
+                (integers1, integers21) -> integers1);
+
+        System.out.println(reduce3);
+    }
 }
