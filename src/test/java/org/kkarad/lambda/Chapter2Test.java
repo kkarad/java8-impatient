@@ -6,14 +6,13 @@ import org.junit.Test;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -212,5 +211,73 @@ public class Chapter2Test {
                 (integers1, integers21) -> integers1);
 
         System.out.println(reduce3);
+    }
+
+    @Test
+    public void exercise10() throws Exception {
+        final List<Double> list = Arrays.asList(1D, 2D, 3D, 4D, 5D, 6D);
+
+        final double avg = list.parallelStream().reduce(new Averager(), Averager::accept, Averager::combine).average();
+        System.out.println(avg);
+    }
+
+    class Averager {
+        final long count;
+        final Double value;
+
+        Averager() {
+            this.count = 0;
+            this.value = 0.0;
+        }
+
+        Averager(long count, Double value) {
+            this.count = count;
+            this.value = value;
+        }
+
+        Averager accept(Double value) {
+            return new Averager(this.count + 1, this.value + value);
+        }
+
+        Averager combine(Averager averager) {
+            return new Averager(this.count + averager.count, this.value + averager.value);
+        }
+
+        double average() {
+            return value / count;
+        }
+    }
+
+    @Test
+    public void exercise11() throws Exception {
+        AtomicInteger index = new AtomicInteger(0);
+        ArrayList<Integer> list = new ArrayList<>(5);
+        Stream.of(1, 2, 3, 4, 5).parallel().forEach(e -> list.set(index.getAndIncrement(), e));
+    }
+
+    @Test
+    public void exercise12() throws Exception {
+        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat",
+                "thalisomilisios", "thoukidides", "perikleus", "aristoteles", "parapleuros", "katantia", "fthora", "ananeosi", "foul");
+
+        AtomicIntegerArray shortWords = new AtomicIntegerArray(12);
+        words.parallelStream().forEach(s -> {
+            if (s.length() <= 12) {
+                shortWords.updateAndGet(s.length() - 1, operand -> operand + 1);
+            }
+        });
+
+        System.out.println(shortWords);
+    }
+
+    @Test
+    public void exercise13() throws Exception {
+        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat",
+                "thalisomilisios", "thoukidides", "perikleus", "aristoteles", "parapleuros", "katantia", "fthora", "ananeosi", "foul");
+
+        final Map<Integer, Long> shortWords = words.parallelStream().filter(s -> s.length() <= 12)
+                .collect(Collectors.groupingBy(String::length, Collectors.counting()));
+
+        System.out.println(shortWords);
     }
 }
