@@ -25,7 +25,7 @@ import static java.util.Arrays.asList;
 public class Chapter2Test {
     @Test
     public void exersise1() throws Exception {
-        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat", "thalisomilisios", "thoukidides");
+        List<String> words = asList("test", "dimitrios", "poliorkitis", "biblos", "piraulokinitiras", "alexanderthegreat", "thalisomilisios", "thoukidides");
 
         final int processors = Runtime.getRuntime().availableProcessors();
         final int size = words.size();
@@ -63,13 +63,13 @@ public class Chapter2Test {
 
     @Test
     public void exercise2() throws Exception {
-        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat", "thanosomilisios", "thoukidides");
+        List<String> words = asList("test", "dimitrios", "poliorkitis", "biblos", "piraulokinitiras", "alexanderthegreat", "thanosomilisios", "thoukidides");
         words.stream().limit(5).forEach(System.out::println);
     }
 
     @Test
     public void exercize3() throws Exception {
-        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat",
+        List<String> words = asList("test", "dimitrios", "poliorkitis", "biblos", "piraulokinitiras", "alexanderthegreat",
                 "thalisomilisios", "thoukidides", "perikleus", "aristoteles", "parapleuros", "katantia", "fthora", "ananeosi", "foul");
 
         long startSeq = System.nanoTime();
@@ -257,7 +257,7 @@ public class Chapter2Test {
 
     @Test
     public void exercise12() throws Exception {
-        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat",
+        List<String> words = asList("test", "dimitrios", "poliorkitis", "biblos", "piraulokinitiras", "alexanderthegreat",
                 "thalisomilisios", "thoukidides", "perikleus", "aristoteles", "parapleuros", "katantia", "fthora", "ananeosi", "foul");
 
         AtomicIntegerArray shortWords = new AtomicIntegerArray(12);
@@ -272,7 +272,7 @@ public class Chapter2Test {
 
     @Test
     public void exercise13() throws Exception {
-        List<String> words = asList("test", "konstantinos", "karadamoglou", "biblos", "piraulokinitiras", "alexanderthegreat",
+        List<String> words = asList("test", "dimitrios", "poliorkitis", "biblos", "piraulokinitiras", "alexanderthegreat",
                 "thalisomilisios", "thoukidides", "perikleus", "aristoteles", "parapleuros", "katantia", "fthora", "ananeosi", "foul");
 
         final Map<Integer, Long> shortWords = words.parallelStream().filter(s -> s.length() <= 12)
