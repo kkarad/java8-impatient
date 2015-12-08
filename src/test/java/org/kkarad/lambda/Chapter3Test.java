@@ -10,8 +10,11 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -62,8 +65,8 @@ public class Chapter3Test {
     }
 
     @Test
-    public void exercise4() throws Exception {
-        ImageApp.main(new String[]{});
+    public void exercise5() throws Exception {
+        Application.launch(Exercise5App.class);
     }
 
     public static Image transform(Image in, ColorTransformer colorTransformer) {
@@ -85,11 +88,7 @@ public class Chapter3Test {
         Color apply(int x, int y, Color colorAtXY);
     }
 
-    public static class ImageApp extends Application {
-
-        public static void main(String[] args) {
-            launch(args);
-        }
+    public static class Exercise5App extends Application {
 
         @Override
         public void start(Stage stage) throws Exception {
@@ -103,8 +102,72 @@ public class Chapter3Test {
                     return colorAtXY;
                 }
             });
-            stage.setScene(new Scene(new HBox(new ImageView(newImage))));
+            stage.setScene(new Scene(new HBox(new ImageView(image), new ImageView(newImage))));
             stage.show();
         }
+    }
+
+    @Test
+    public void exercise6() throws Exception {
+        Application.launch(Exercise6App.class);
+    }
+
+    public static class Exercise6App extends Application {
+        @Override
+        public void start(Stage stage) throws Exception {
+            Image image = new Image("sailboat.jpg");
+            Image newImage = transform(image, 1.5D, (color, factor) -> color.deriveColor(1, 1, factor, 1));
+            stage.setScene(new Scene(new HBox(new ImageView(image), new ImageView(newImage))));
+            stage.show();
+        }
+    }
+
+    static <T> Image transform(Image in, T arg, BiFunction<Color, T, Color> f) {
+        return transform(in, (x, y, colorAtXY) -> f.apply(colorAtXY, arg));
+    }
+
+    @Test
+    public void exercise7() throws Exception {
+        String[] words = new String[]{" test", "dimitrios", "poliorkitis", "biblos", "piraulokinitiras", "alexanderthegreat",
+                "thalisomilisios", "Thoukidides", "perikleus", "aristoteles", "parapleuros", "katantia", "fthora", "ananeosi", "foul"};
+
+        Arrays.sort(words, stringComparator(false, false, false));
+
+        System.out.println(Arrays.toString(words));
+    }
+
+    static Comparator<String> stringComparator(boolean reverse, boolean caseSensitive, boolean spaceSensitive) {
+        return (left, right) -> {
+            left = spaceSensitive ? left : left.trim();
+            right = spaceSensitive ? right : right.trim();
+            left = caseSensitive ? left : left.toLowerCase();
+            right = caseSensitive ? right : right.toLowerCase();
+            return reverse ? right.compareTo(left) : left.compareTo(right);
+        };
+    }
+
+    @Test
+    public void exercise8() throws Exception {
+        Application.launch(Exercise8App.class);
+    }
+
+    public static class Exercise8App extends Application {
+        @Override
+        public void start(Stage stage) throws Exception {
+            Image image = new Image("sailboat.jpg");
+            Image newImage = transform(image, frameColorTransformer(((int) image.getWidth()), ((int) image.getHeight()), Color.SALMON, 50));
+            stage.setScene(new Scene(new HBox(new ImageView(image), new ImageView(newImage))));
+            stage.show();
+        }
+    }
+
+    static ColorTransformer frameColorTransformer(int width, int height, Color color, int thickness) {
+        return (x, y, colorAtXY) -> {
+            if (x <= thickness || y <= thickness || x >= width - thickness || y >= height - thickness) {
+                return color;
+            } else {
+                return colorAtXY;
+            }
+        };
     }
 }
