@@ -10,13 +10,17 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public class Chapter3Test {
 
@@ -169,5 +173,133 @@ public class Chapter3Test {
                 return colorAtXY;
             }
         };
+    }
+
+    @Test
+    public void exersise9() throws Exception {
+        final Person[] persons = {new Person("John", "Smith"), new Person("Paul", "Duncan"), new Person("Duncan", "Aaron")};
+        Arrays.sort(persons, lexicographicComparator("lastName", "firstName"));
+        System.out.println(Arrays.toString(persons));
+    }
+
+    private <T extends Object> Comparator<T> lexicographicComparator(String... fieldNames) {
+        return (left, right) -> {
+            for (String fieldName : fieldNames) {
+                try {
+                    final Field leftField = left.getClass().getDeclaredField(fieldName);
+                    final Field rightField = right.getClass().getDeclaredField(fieldName);
+                    final Object leftFieldValue = leftField.get(left);
+                    final Object rightFieldValue = rightField.get(right);
+                    final int comparisonResult = leftFieldValue.toString().compareTo(rightFieldValue.toString());
+                    if (comparisonResult != 0) return comparisonResult;
+                } catch (ReflectiveOperationException e) {
+                    throw new RuntimeException("Unable to compare field: " + fieldName, e);
+                }
+            }
+            return 0;
+        };
+    }
+
+    private static class Person {
+        final String firstName;
+        final String lastName;
+
+        public Person(String firstName, String lastName) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+        }
+
+        @Override
+        public String toString() {
+            return "Person{" +
+                    "firstName='" + firstName + '\'' +
+                    ", lastName='" + lastName + '\'' +
+                    '}';
+        }
+    }
+
+    /**
+     * Java's labdas support nominal but not structural
+     */
+    @Test
+    public void exercise10() throws Exception {
+        final UnaryOperator<Color> op = Color::brighter;
+        //transforme(new Image("sailboat.jpg"), op.compose(Color::grayscale));
+        op.compose(Color::grayscale);
+    }
+
+    Image transforme(Image in, UnaryOperator<Color> op) {
+        return null;
+    }
+
+    @Test
+    public void exercise11() throws Exception {
+        Application.launch(Exercise11App.class);
+    }
+
+    static ColorTransformer compose(ColorTransformer before, ColorTransformer after) {
+        return (x, y, colorAtXY) -> {
+            final Color nextColor = before.apply(x, y, colorAtXY);
+            return after.apply(x, y, nextColor);
+        };
+    }
+
+    static ColorTransformer toColorTransformer(UnaryOperator<Color> unaryOp) {
+        return (x, y, colorAtXY) -> unaryOp.apply(colorAtXY);
+    }
+
+    public static class Exercise11App extends Application {
+        @Override
+        public void start(Stage stage) throws Exception {
+            Image image = new Image("sailboat.jpg");
+            Image newImage = transform(image, compose(toColorTransformer(Color::brighter), frameColorTransformer(((int) image.getWidth()), ((int) image.getHeight()), Color.GRAY, 50)));
+            stage.setScene(new Scene(new HBox(new ImageView(image), new ImageView(newImage))));
+            stage.show();
+        }
+    }
+
+    @Test
+    public void exercise12() throws Exception {
+        final Image in = new Image("sailboat.jpg");
+        LatentImage latent = LatentImage.from(in).transform(Color::brighter).transform(frameColorTransformer((int) in.getWidth(), (int) in.getHeight(), Color.AQUA, 50));
+    }
+
+    static class LatentImage {
+        private final Image in;
+        private List<ColorTransformer> transformers = new ArrayList<>();
+
+        private LatentImage(Image in) {
+            this.in = in;
+        }
+
+        public static LatentImage from(Image in) {
+            return new LatentImage(in);
+        }
+
+        public LatentImage transform(ColorTransformer transformer) {
+            transformers.add(transformer);
+            return this;
+        }
+
+        public LatentImage transform(UnaryOperator<Color> op) {
+            transformers.add(toColorTransformer(op));
+            return this;
+        }
+
+        public Image toImage() {
+            int width = (int) in.getWidth();
+            int height = (int) in.getHeight();
+            WritableImage out = new WritableImage(width, height);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    Color c = in.getPixelReader().getColor(x, y);
+                    for (ColorTransformer transformer : transformers) {
+                        c = transformer.apply(x, y, c);
+                    }
+                    out.getPixelWriter().setColor(x, y, c);
+                }
+            }
+            return out;
+        }
     }
 }
